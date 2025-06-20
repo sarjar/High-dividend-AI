@@ -106,7 +106,7 @@ FINANCIAL_DATASET_API_KEY=your_financial_dataset_key
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd high-dividend-ai
+   cd High-dividend-AI
    ```
 
 2. **Install dependencies**
