@@ -83,24 +83,29 @@ export async function checkRateLimit(
     const remaining = Math.max(0, MAX_ATTEMPTS[action] - attemptCount);
     const allowed = remaining > 0;
 
-    // Record this attempt
+    // Track all attempt timestamps to calculate when the limit resets
+    const attemptTimes = attempts?.map((a) => new Date(a.created_at).getTime()) || [];
     if (allowed) {
+      // Record this attempt
       try {
         await serviceClient.from("rate_limits").insert({
           action,
           identifier,
           created_at: now.toISOString(),
         });
+        attemptTimes.push(now.getTime());
       } catch (insertError) {
         console.error("Error recording rate limit attempt:", insertError);
         // Continue even if recording fails
       }
     }
 
+    const earliest = attemptTimes.length > 0 ? Math.min(...attemptTimes) : now.getTime();
+
     return {
       allowed,
       remaining,
-      resetAt: new Date(windowStart.getTime() + RATE_LIMIT_WINDOW),
+      resetAt: new Date(earliest + RATE_LIMIT_WINDOW),
     };
   } catch (error) {
     console.error("Rate limit check failed:", error);
